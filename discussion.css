@@ -1,0 +1,33 @@
+/* PAGE INDEX ----------- */
+/* MAIN */
+.jumbotron{
+  height: 100vh !important;
+}
+/* ---------------- */
+/* PAGE INSCRIPTION------ */
+
+
+/* ------------------ */
+.footer_me{
+  background-color: grey !important;
+}
+.footer_me_ins{
+  background-color: grey !important;
+  margin-top: 300px;
+}
+.footer_me_con{
+  background-color: grey !important;
+  margin-top: 400px;
+}
+.footer_or{
+  background-color: grey !important;
+  margin-top: 1000px;
+}
+/* ----------- */
+.erreur_ins{
+  color:red;
+}
+/* ----------- */
+.comm tr td{
+  border: 1px solid black;
+}
