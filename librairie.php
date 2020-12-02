@@ -42,15 +42,25 @@ class Config
             $this->login = $_POST['login'];
             $this->password = $_POST['password'];
 
-                if(isset($_POST['login']) && isset($_POST['password']))
+                if(empty($_POST['login']) && empty($_POST['password']))
                 {
-                    // $ident = ["login"=>$login, "password"=>$password];
-                    // return $ident;
-                    return true;
+                    $error = 'Veuillez renseigner tous les champs' ;
+                    return $error;
                 }
-                else return false;
+                if(empty($_POST['login']))
+                {
+                   $error='Veuillez renseigner le login';
+                    return $error;
+                }
+                if(empty($_POST['password']))
+                {
+                    $error='Veuillez renseigner le password';
+                    return $error;
+                }
+               else return false;
           }
-      }
+          
+      }   
 
       public function check_login() //ici la check verifie que le login n'existe pas deja
       {
@@ -71,6 +81,7 @@ class Config
 
       public function check_password()//ici on verifie le password
       {
+          //password_verify ici
           $query = $this->pdo->prepare("SELECT * FROM utilisateurs WHERE login = ? ");
           $query->bindValue(1, $this->login);
           $query->execute();
@@ -85,6 +96,7 @@ class Config
       
       public function insert($login, $password) //ici on va faire une fonction d'insertion dans la bdd
       {
+          //password hach ici
           $query = $this->pdo->prepare("INSERT INTO utilisateurs (login, password) VALUES (?, ?)");
           $query->bindValue(1, $login);
           $query->bindValue(2, $password);
@@ -92,13 +104,13 @@ class Config
 
       }
 
-      public function create_session() //sert à creer une session identifiée grace à l'id
+      public function create_session($log) //sert à creer une session identifiée grace à l'id
       {
-          $query = $this->pdo->prepare("SELECT*FROM utilisateurs WHERE login = ? ");
-          $query->bindValue(1, $this->login);
-          $query->execute();
+          // $query = $this->pdo->prepare("SELECT*FROM utilisateurs WHERE login = ? ");
+          // $query->bindValue(1, $this->login);
+          // $query->execute();
 
-          $ligne = $query->fetch(PDO::FETCH_ASSOC);
+          $ligne = $log->fetch(PDO::FETCH_ASSOC);
           $_SESSION['connexion'] = $ligne['id'];
           header('location: profil.php');
           exit();

@@ -5,11 +5,11 @@ include_once("librairie.php");
 
 
 //if(isset($_POST['login']) && isset($_POST['password']))
-  //INSTANCIATION
+//INSTANCIATION
 $objet = new Config();
 $tout = $objet->tout_remplis();
 
-    if($tout==true)
+    if($tout==false)
     {              
       //verification disponibilité du login et du password
       // $checkinlog = $objet->check_login($_POST['login']);  
@@ -20,11 +20,11 @@ $tout = $objet->tout_remplis();
           
           if($checkinlog==true && $checkinpass==true)
           {
-            $create = $objet->create_session();
+            $create = $objet->create_session($checkinlog);
           }
-          else echo 'Mot de passe ou login incorrect';
+          // else $error ='mot de passe ou login incorect';
     }
-    // else echo "<p class='erreur_ins'> Veuillez renseignez tous les champs</p>";
+    //else echo "<p class='erreur_ins'> Veuillez renseignez tous les champs</p>";
 ?>
 
 <!-- Header ------------------- -->
@@ -38,7 +38,12 @@ include('header.php');
 
     <input type="text" id="defaultLoginFormText" class="form-control mb-4" placeholder="Pseudo" name="login">
     <input type="password" id="defaultLoginFormPassword" class="form-control mb-4" placeholder="Mot de passe" name="password">
-   
+    <?php
+      if($tout==true)
+      {
+        echo $tout;
+      }
+    ?>
     <button class="btn btn-info btn-block my-4" type="submit" name="submit">C'est parti !</button>
 </form>
 
