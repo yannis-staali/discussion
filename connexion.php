@@ -3,26 +3,25 @@ session_start();
 
 include_once("librairie.php");
 
+$check_fields ='';
+$checkinlog= '';
+$checkinpass = '';
 
-//if(isset($_POST['login']) && isset($_POST['password']))
 //INSTANCIATION
 $objet = new Config();
-$tout = $objet->tout_remplis();
 
-    if($tout==false)
-    {              
-      //verification disponibilité du login et du password
-      // $checkinlog = $objet->check_login($_POST['login']);  
-      // $checkinpass = $objet->check_password($_POST['login'], $_POST['password']);
 
+    if(isset($_POST['submit']))
+    {       
+          $check_fields = $objet->check_fields();
           $checkinlog = $objet->check_login();  
+          //var_dump($checkinlog);
           $checkinpass = $objet->check_password();
           
-          if($checkinlog==true && $checkinpass==true)
+          if($checkinlog==false && $checkinpass==false)
           {
-            $create = $objet->create_session($checkinlog);
+            $create = $objet->create_session();
           }
-          // else $error ='mot de passe ou login incorect';
     }
     //else echo "<p class='erreur_ins'> Veuillez renseignez tous les champs</p>";
 ?>
@@ -38,13 +37,26 @@ include('header.php');
 
     <input type="text" id="defaultLoginFormText" class="form-control mb-4" placeholder="Pseudo" name="login">
     <input type="password" id="defaultLoginFormPassword" class="form-control mb-4" placeholder="Mot de passe" name="password">
-    <?php
-      if($tout==true)
-      {
-        echo $tout;
-      }
-    ?>
     <button class="btn btn-info btn-block my-4" type="submit" name="submit">C'est parti !</button>
+
+    <?php
+       if($check_fields==true)
+       {
+         echo $check_fields;
+         exit();
+       }
+       if($checkinlog==true)
+       {
+         echo $checkinlog;
+     
+       }
+       if($checkinpass==true)
+       {
+       echo $checkinpass;
+       }
+      
+      
+    ?>
 </form>
 
 <!-- Footer ------------------- -->

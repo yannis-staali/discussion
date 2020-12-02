@@ -1,5 +1,4 @@
 <?php
-require_once('data_base.php');
 
 /**
  * Class Config
@@ -27,12 +26,28 @@ class Config
       
       function __construct() //ici la construct ne sert qu'a connecter à la bdd
       {
-          $this->pdo = connect();
+        //ici partie connexion à la base de donnée -------------
+        $DB_DSN = 'mysql:host=localhost;dbname=livreor';
+        $DB_USER = 'root';
+        $DB_PASS = '';
+            try
+            {
+            $connexion = new PDO($DB_DSN, $DB_USER, $DB_PASS);
+            $connexion->setAttribute(PDO::ATTR_ERRMODE,PDO::ERRMODE_WARNING);
+            }
+            catch(PDOexception $e)
+            {
+            echo "connexion failed" .$e->getMessage();
+            }
+
+          $this->pdo = $connexion;
+        // ------------------------------------------------------
+
           // $this->login = $login;
           // $this->password = $password; 
       }
 
-      public function tout_remplis() //sert a verifier le formulaire
+      public function check_fields() //sert a verifier le formulaire et retourne false si tout est rempli
       {
           if(isset($_POST['submit']))
           {
@@ -61,8 +76,8 @@ class Config
           }
           
       }   
-
-      public function check_login() //ici la check verifie que le login n'existe pas deja
+  
+      public function check_login() //ici le check verifie si le login existe deja et retourne false si c'est le cas
       {
           $query = $this->pdo->prepare("SELECT*FROM utilisateurs WHERE login = ? ");
           $query->bindValue(1, $this->login);
@@ -71,15 +86,16 @@ class Config
           $row = $query->rowCount();
             if($row==1)
             {
-              return $query; 
+              return false; 
             }
             elseif($row==0)
             { 
-              return false; 
+                 $error="login incorrect et/ou";
+                return $error; 
             }
       } 
 
-      public function check_password()//ici on verifie le password
+      public function check_password()//ici on verifie le password et retourne false si il existe en bdd
       {
           //password_verify ici
           $query = $this->pdo->prepare("SELECT * FROM utilisateurs WHERE login = ? ");
@@ -89,9 +105,11 @@ class Config
           $ligne = $query->fetch(PDO::FETCH_ASSOC);
             if($ligne==true && $ligne['password']==$this->password)
             {
-                return true;
+                return false;
             }
-            else return false;
+            else
+            $error= ' mot de passe incorrect';
+            return $error;
       }
       
       public function insert($login, $password) //ici on va faire une fonction d'insertion dans la bdd
@@ -104,13 +122,13 @@ class Config
 
       }
 
-      public function create_session($log) //sert à creer une session identifiée grace à l'id
+      public function create_session() //sert à creer une session identifiée grace à l'id
       {
-          // $query = $this->pdo->prepare("SELECT*FROM utilisateurs WHERE login = ? ");
-          // $query->bindValue(1, $this->login);
-          // $query->execute();
+          $query = $this->pdo->prepare("SELECT*FROM utilisateurs WHERE login = ? ");
+          $query->bindValue(1, $this->login);
+          $query->execute();
 
-          $ligne = $log->fetch(PDO::FETCH_ASSOC);
+          $ligne = $query->fetch(PDO::FETCH_ASSOC);
           $_SESSION['connexion'] = $ligne['id'];
           header('location: profil.php');
           exit();
