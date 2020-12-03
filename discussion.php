@@ -1,54 +1,89 @@
 <?php
 session_start();
+include_once("data_base.php"); //fonction de connexion à la BDD
 
-//variables intermédiaires de connexion
-$DB_DSN = 'mysql:host=localhost;dbname=livreor';
-$DB_USER = 'root';
-$DB_PASS = '';
-
-try
+if(!isset($_SESSION['connexion'])) // retour à l'envoyeur si pas de variable session crée
 {
-//configuration des erreurs et enlever l'emulation des requetes préparées
-$options =
-[
-  PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8',
-  PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-  PDO::ATTR_EMULATE_PREPARES => false
-];
+    header('location: connexion.php');
+    exit();
+}
 
-  $PDO = new PDO($DB_DSN, $DB_USER, $DB_PASS, $options);
-  $request = $PDO->prepare("SELECT commentaires.date, utilisateurs.login, commentaires.commentaire FROM commentaires INNER JOIN utilisateurs ON commentaires.id_utilisateur = utilisateurs.id ORDER BY date DESC ");  
-  $request -> setFetchMode(PDO::FETCH_ASSOC);       
-  $request->execute();                      
-}
-catch(PDOException $pe)
+// connexion et requete SELECT puis recupération des messages
+$PDO = connect(); 
+$request = $PDO->prepare("SELECT messages.date, utilisateurs.login, messages.message FROM messages INNER JOIN utilisateurs ON messages.id_utilisateur = utilisateurs.id ORDER BY date DESC ");  
+$request -> setFetchMode(PDO::FETCH_ASSOC);       
+$request->execute();    
+
+if(isset($_POST['submit']))
 {
-   echo 'ERREUR : '.$pe->getMessage();
-}
+$commentaire = htmlspecialchars($_POST['com']);
+$iduser = htmlspecialchars($_SESSION['connexion']);
+  
+        // requete d'insertion d'un nouveau message
+        $request2 = $PDO->prepare("INSERT INTO messages (message, id_utilisateur)  VALUES (?, ?) ");         
+        $request2->bindValue(1, $commentaire);
+        $request2->bindValue(2, $iduser);
+        $request2->execute(); 
+        
+        $delai=1; 
+        $url='discussion.php';
+        header("Refresh: $delai;url=$url");
+    
+} 
 ?>
 
-<?php
+<!-- Header  ---------------------------------->
+<?php include('header.php'); ?>
 
-include('header.php');
-
-?>
-
+<!-- Affichage des messages  ----------------------->
+<p class='titre'>historique de conversation</p>
 <?php  
-        echo "<table class='comm'>";
+        echo "<div class='contain_discussion'> ";
         while($resultat = $request->fetch())
         {
-          echo "<tr><td> Posté le :  $resultat[date] </td>  <td> par : $resultat[login] </td> <td> $resultat[commentaire] </td></tr>" ;
+          echo "<div class='message'><p> Posté le :  $resultat[date]<br/> par : $resultat[login] <br/> $resultat[message] </div></p>" ;
            
         }
-        echo "</table>";
+        echo "</div> ";
 
         if(isset($_SESSION['connexion']))
         {
-          echo "<a class='btn btn-primary' href='commentaire.php' role='button'>Laisser un commentaire</a>";
+          echo 
+          "<form  class='text-center border border-light p-5'  action='discussion.php' method='post'>
+          <p class='h4 mb-4'>Laissez un commentaire</p>
+          <div class='form-group'>
+          <textarea class='form-control' id='exampleTextarea' rows='3' name='com'></textarea>
+          </div>
+          <button class='btn btn-info btn-block my-4' type='submit' name='submit'>C'est parti !</button>
+          </form> ";
         }
 ?>
 
+
 <!-- Footer ------------------- -->
-<?php
-include('footer.php');
-?>
+<?php include('footer.php'); ?>
+
+<!-- Style CSS  ------------------->
+<style>
+.contain_discussion{
+  display: flex;
+  flex-direction:column;
+  align-items: center;
+}
+.message{
+  background-color: #047AFB ; 
+  width: 500px;
+  min-height: 50px;
+  color: white;
+  padding: 5px;
+  border: 2px solid black;
+  border-radius: 15px;
+  
+}
+.titre{
+  background-color: #047AFB;
+  width:400px; 
+  text-align: center;
+  color: white;
+}
+</style>

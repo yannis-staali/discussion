@@ -1,75 +1,51 @@
 <?php
 session_start();
+include_once("data_base.php"); // fonction de connexion à la BDD
+include_once("Utlisateur.class.php"); // class utilisateur
 
-$DB_DSN = 'mysql:host=localhost;dbname=livreor';
-$DB_USER = 'root';
-$DB_PASS = '';
-
-try
-{
-$options =
-[
-  PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8',
-  PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-  PDO::ATTR_EMULATE_PREPARES => false
-];
-if(!isset($_SESSION['connexion']))
+if(!isset($_SESSION['connexion'])) // retour à l'envoyeur si pas de variable session crée
 {
     header('location: connexion.php');
     exit();
 }
-//ici on stocke le contenu de la variable SESSION (le login entré precedemment) dans $loginverify
+
+//ici on stocke le contenu de la variable SESSION (l'id entré precedemment) dans $idverify
 //pour pouvoir l'utiliser pour fixer la ligne lors de la requete UPDATE
 $idverify = $_SESSION['connexion'];
 
+$objet = new Utilisateur(connect()); //INSTANCIATION
+
       if(isset($_POST['submit']))
       {
-            if(!empty($_POST))
+      $login = htmlspecialchars($_POST['login']);
+      $password = htmlspecialchars($_POST['password']);
+      $password2 = htmlspecialchars($_POST['password2']);
+
+      $check_fields = $objet->check_fields_profil(); //on verifie que tous les champs soient remplis
+
+            if($check_fields==false)      
             {
-            $login = $_POST['login'];
-            $password = $_POST['password'];
-            $password2 = $_POST['password2'];
-            $test= 'salut';
+            $checkinlog = $objet->check_login_profil($login);
 
-                  if($password==$password2)
+                  if($checkinlog==false)
                   {
-                    
-                  $PDO = new PDO($DB_DSN, $DB_USER, $DB_PASS, $options);
-                  $request = $PDO->prepare("SELECT*FROM utilisateurs WHERE login = ? ");         
-                  $request->bindValue(1, $login);
-                  $request->execute();
-
-                  $row = $request->rowCount();
-                            
-
-                         if($row==0)
-                         {
-                         $request2 = $PDO->prepare("UPDATE utilisateurs SET login = ?, password = ?  WHERE id = ? ");
+                  $checkinpass = $objet->check_same_password($password, $password2);
                         
-
-                         $request2->bindValue(1, $login);
-                         $request2->bindValue(2, $password);
-                         $request2->bindValue(3, $idverify);
-                         $request2->execute();
-                         var_dump($request2);
-                         }
+                        if($checkinpass==false)
+                        {
+                              $hached_pass = password_hash($password, PASSWORD_DEFAULT);
+                              $update = $objet->update($login, $hached_pass, $idverify);
+                              echo $update;
+                        }
                   }
             }
       }
-}
-catch(PDOException $pe)
-{
-   echo 'ERREUR : '.$pe->getMessage();
-}
 ?>
 
-<?php
+<!-- Header ------------------- -->
+<?php include('header.php'); ?>
 
-include('header.php');
-
-?>
-
-
+<!-- Formulaire ------------------- -->
 <form  class="text-center border border-light p-5"  action="profil.php" method="post">
     <p class="h4 mb-4">Modifiez votre pseudo et mot de passe</p>
 
@@ -82,6 +58,4 @@ include('header.php');
 
 
 <!-- Footer ------------------- -->
-<?php
-include('footer.php');
-?>
+<?php include('footer.php'); ?>
